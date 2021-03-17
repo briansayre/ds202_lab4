@@ -1,0 +1,7 @@
+
+```{r}
+library(readxl)
+defense <- read_excel('./cyclonesFootball2020.xlsx', sheet='Defensive')
+str(defense)
+```
+

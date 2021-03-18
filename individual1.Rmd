@@ -1,7 +1,129 @@
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
 ```{r}
 library(readxl)
-defense <- read_excel('./cyclonesFootball2020.xlsx', sheet='Defensive')
+library(tidyverse)
+library(dplyr)
+```
+
+
+```{r}
+## downloading defensive data
+defense <- read_excel('../ds202_lab4/cyclonesFootball2020.xlsx', sheet='Defensive')
+head(defense)
+```
+
+```{r}
+##downloading offensive data
+offense <- read_excel('../ds202_lab4/cyclonesFootball2020.xlsx', sheet='Offensive')
+head(offense)
+```
+
+```{r}
+##downloading biographical data
+biography <- read_excel('../ds202_lab4/cyclonesFootball2020.xlsx', sheet='Biography')
+head(biography)
+```
+## Part One
+## Question One
+```{r}
+defense <- rename(defense, 'Opponent'='Opponent_Opponent')
+defense$Opponent <- as.factor(defense$Opponent)
+defense$Name <- as.factor(defense$Name)
+
+offense <- rename(offense, 'Opponent'='Opponent_Opponent')
+offense$Opponent <- as.factor(offense$Opponent)
+offense$Name <- as.factor(offense$Name)
+
+biography$Name <- as.factor(biography$Name)
+```
+
+## Question 2
+```{r}
+defense[,3:11] <- sapply(defense[,3:11],as.numeric)
 str(defense)
+
+offense[,3:11] <- sapply(offense[,3:11],as.numeric)
+str(offense)
+
+
+biography <- separate(biography, Height, c('feet', 'inches'), sep='-')
+biography[,3:5] <- sapply(biography[,3:5],as.numeric)
+head(biography)
+
+defClean <- defense
+offClean <- offense
+bioClean <- biography
+```
+
+```{r}
+
+
+# Defense 
+defJoin <- defClean %>% inner_join(bioClean, by=c("Name"))
+defJoin <- separate(defJoin, Hometown, c('City', 'State'), sep=', ')
+defJoin <- defJoin[!duplicated(defJoin$Name), ]
+
+## Numerical
+t <- table(defJoin$State)
+t <- data.frame(rbind(t))
+defCount <- t %>%
+  pivot_longer(Ariz.:Texas, names_to='State', values_to='Count') %>%
+  arrange(desc(Count))
+defCount
+
+## Graphical
+ggplot(defJoin, aes(x=`State`)) + 
+  geom_bar()
+
+# Offense
+offJoin <- offClean %>% inner_join(bioClean, by=c("Name"))
+offJoin <- separate(offJoin, Hometown, c('City', 'State'), sep=', ')
+offJoin <- offJoin[!duplicated(offJoin$Name), ]
+
+## Numerical
+t <- table(offJoin$State)
+t <- data.frame(rbind(t))
+offCount <- t %>%
+  pivot_longer(Ariz.:Texas, names_to='State', values_to='Count') %>%
+  arrange(desc(Count))
+offCount
+
+## Graphical
+ggplot(offJoin, aes(x=`State`)) + 
+  geom_bar()
+
+```
+
+```{r}
+
+bioClean <- separate(bioClean, Hometown, c('City', 'State'), sep=', ')
+bioClean
+t <- table(bioClean$State)
+t <- data.frame(rbind(t))
+t
+homeCount <- t %>%
+  pivot_longer(Ariz.:Wis., names_to='State', values_to='Count') %>%
+  arrange(desc(Count))
+homeCount
+
+
+ggplot(bioClean, aes(x=`State`)) + 
+  geom_bar() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjus=.5))
+```
+
+```{r}
+
+```
+
+
+```{r}
+defense19 <- read_excel('../ds202_lab4/cyclonesFootball2019.xlsx', sheet='Defensive')
+offense19 <- read_excel('../ds202_lab4/cyclonesFootball2019.xlsx', sheet='Offensive')
+
 ```
 

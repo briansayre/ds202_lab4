@@ -1,24 +1,36 @@
 ---
-title: "individual2"
+title: "team"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-
 library(readxl)
 library(tidyverse)
-defense <- read_excel('cyclonesFootball2020.xlsx', sheet='Defensive')
-offense <- read_excel('cyclonesFootball2020.xlsx', sheet='Offensive')
-biography <- read_excel('cyclonesFootball2020.xlsx', sheet='Biography')
+library(dplyr)
 ```
 
 
-# setup caitlin did
 
+```{r}
+## downloading defensive data
+defense <- read_excel('../ds202_lab4/cyclonesFootball2020.xlsx', sheet='Defensive')
+head(defense)
+```
 
+```{r}
+##downloading offensive data
+offense <- read_excel('../ds202_lab4/cyclonesFootball2020.xlsx', sheet='Offensive')
+head(offense)
+```
+
+```{r}
+##downloading biographical data
+biography <- read_excel('../ds202_lab4/cyclonesFootball2020.xlsx', sheet='Biography')
+head(biography)
+```
 ## Part One
-## Question One
+### 1
 ```{r}
 defense <- rename(defense, 'Opponent'='Opponent_Opponent')
 defense$Opponent <- as.factor(defense$Opponent)
@@ -31,15 +43,15 @@ offense$Name <- as.factor(offense$Name)
 biography$Name <- as.factor(biography$Name)
 ```
 
-## Question 2
+### 2
 ```{r}
 defense <- defense %>%
   mutate(across(Tackles_Solo:Pass_PB, as.numeric))
-str(defense)
+head(defense)
 
 offense <- offense %>%
   mutate(across(Receiving_REC:Passing_INT, as.numeric))
-str(offense)
+head(offense)
 
 
 biography <- separate(biography, Height, c('Feet', 'Inches'), sep='-')
@@ -52,7 +64,7 @@ offClean <- offense
 bioClean <- biography
 ```
 
-# Part Two
+## Part Two
 ### 1
 
 ```{r}
@@ -93,6 +105,4 @@ ggplot(offCleanWide, aes(x=Oklahoma, y= Oregon))+geom_point()+xlim(0,100)+ylim(0
 
 ```
 We can see that the defense was better against Oklahoma because every player had higher Receiving Yards against Oklahoma than against Oregon. 
-
-
 

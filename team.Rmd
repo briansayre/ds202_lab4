@@ -106,3 +106,83 @@ ggplot(offCleanWide, aes(x=Oklahoma, y= Oregon))+geom_point()+xlim(0,100)+ylim(0
 ```
 We can see that the defense was better against Oklahoma because every player had higher Receiving Yards against Oklahoma than against Oregon. 
 
+
+
+### 4
+```{r}
+bioClean <- separate(bioClean, Hometown, c('City', 'State'), sep=', ')
+head(bioClean[7:8], 5)
+```
+
+### 5
+```{r}
+t <- table(bioClean$State)
+t <- data.frame(rbind(t))
+t
+```
+
+
+## Part Three
+
+### 1
+#### Numerical
+```{r}
+homeCount <- t %>%
+  pivot_longer(Ariz.:Wis., names_to='State', values_to='Count') %>%
+  arrange(desc(Count))
+homeCount
+```
+
+#### Graphical
+```{r}
+ggplot(bioClean, aes(x=`State`)) + 
+  geom_bar() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjus=.5))
+```
+
+### 2
+
+
+### 3
+
+```{r}
+offense19 <- read_excel('../ds202_lab4/cyclonesFootball2019.xlsx', sheet='Offensive')
+
+offense19 <- rename(offense19, 'Opponent'='Opponent_Opponent')
+offense19$Opponent <- as.factor(offense19$Opponent)
+offense19$Name <- as.factor(offense19$Name)
+
+offense19 <- offense19 %>%
+  mutate(across(Rushing_ATT:Passing_INT, as.numeric))
+
+offClean19 <- offense19
+
+offCleanLonger19 <- offClean19 %>%
+  pivot_longer(Rushing_ATT:Passing_INT, names_to = 'stat',values_to = 'value' )
+
+offCleanest19 <- drop_na(offCleanLonger19)
+
+offAvg <- offCleanest %>%
+  group_by(Name, stat)%>%
+  summarise_at(vars(value), list(average20 = mean))
+
+offAvg19 <- offCleanest19 %>%
+  group_by(Name, stat)%>%
+  summarise_at(vars(value), list(average19 = mean))  
+
+off1920 <- offAvg %>%
+  left_join(offAvg19, by=c('Name', 'stat')) %>%
+  drop_na() %>%
+  mutate(difference = average20 - average19) %>%
+  mutate(improved = difference>0)
+
+head(off1920, 5)
+
+ggplot(off1920, aes(x=Name, y=difference))+
+  geom_bar(stat = "identity")+
+  facet_wrap(~stat, scales = 'free')+
+  ggtitle("Difference in stat averages from 2019 to 2020") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjus=0.5, size = rel(0.7)))
+```
+  
+For this question I looked at the averages for each statistic on the offensive side of the ball for each player that played in both 2019 and 2020. I then combined the 2 years and calculated the difference between the 2 years to see how each play improved from 2019 to 2020. In the receiving stats row you see Landen Akers and Dylan Soehner both improved in receptions per game and yards per game but only Landen Akers improved in touchdowns per game of the 2. Given Landen Akers improved in each area almost more than anyone else I would say he was the most improved receiver. Although the most improved receiver was pretty close, the most improved rusher is pretty clear. You can see that Breece Hall improved more than any other back in all 3 categories. I would easily give him most improved runner. We also have throwing stats in this graph but since Brock Purdy is the only QB who played both 2019 and 2020 there isn't much analyses that can be done.

@@ -1,13 +1,15 @@
+---
+title: "team"
+output: html_document
+---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-```
-
-```{r}
 library(readxl)
 library(tidyverse)
 library(dplyr)
 ```
+
 
 
 ```{r}
@@ -28,7 +30,7 @@ biography <- read_excel('../ds202_lab4/cyclonesFootball2020.xlsx', sheet='Biogra
 head(biography)
 ```
 ## Part One
-## Question One
+### 1
 ```{r}
 defense <- rename(defense, 'Opponent'='Opponent_Opponent')
 defense$Opponent <- as.factor(defense$Opponent)
@@ -41,17 +43,20 @@ offense$Name <- as.factor(offense$Name)
 biography$Name <- as.factor(biography$Name)
 ```
 
-## Question 2
+### 2
 ```{r}
-defense[,3:11] <- sapply(defense[,3:11],as.numeric)
-str(defense)
+defense <- defense %>%
+  mutate(across(Tackles_Solo:Pass_PB, as.numeric))
+head(defense)
 
-offense[,3:11] <- sapply(offense[,3:11],as.numeric)
-str(offense)
+offense <- offense %>%
+  mutate(across(Receiving_REC:Passing_INT, as.numeric))
+head(offense)
 
 
-biography <- separate(biography, Height, c('feet', 'inches'), sep='-')
-biography[,3:5] <- sapply(biography[,3:5],as.numeric)
+biography <- separate(biography, Height, c('Feet', 'Inches'), sep='-')
+biography <- biography %>%
+  mutate(across(Feet:Weight, as.numeric))
 head(biography)
 
 defClean <- defense
@@ -59,71 +64,130 @@ offClean <- offense
 bioClean <- biography
 ```
 
+## Part Two
+### 1
+
 ```{r}
+offCleanLonger <- offClean %>%
+  pivot_longer(Receiving_REC:Passing_INT,names_to = 'stat',values_to = 'value' )
 
-
-# Defense 
-defJoin <- defClean %>% inner_join(bioClean, by=c("Name"))
-defJoin <- separate(defJoin, Hometown, c('City', 'State'), sep=', ')
-defJoin <- defJoin[!duplicated(defJoin$Name), ]
-
-## Numerical
-t <- table(defJoin$State)
-t <- data.frame(rbind(t))
-defCount <- t %>%
-  pivot_longer(Ariz.:Texas, names_to='State', values_to='Count') %>%
-  arrange(desc(Count))
-defCount
-
-## Graphical
-ggplot(defJoin, aes(x=`State`)) + 
-  geom_bar()
-
-# Offense
-offJoin <- offClean %>% inner_join(bioClean, by=c("Name"))
-offJoin <- separate(offJoin, Hometown, c('City', 'State'), sep=', ')
-offJoin <- offJoin[!duplicated(offJoin$Name), ]
-
-## Numerical
-t <- table(offJoin$State)
-t <- data.frame(rbind(t))
-offCount <- t %>%
-  pivot_longer(Ariz.:Texas, names_to='State', values_to='Count') %>%
-  arrange(desc(Count))
-offCount
-
-## Graphical
-ggplot(offJoin, aes(x=`State`)) + 
-  geom_bar()
-
+offCleanest <- drop_na(offCleanLonger)
 ```
 
-```{r}
 
+### 2
+
+```{r}
+offCleanest$stat <- as.factor(offCleanest$stat)
+ggplot(offCleanest, aes(x=value))+geom_histogram(bins = 15)+facet_wrap(~ stat, scales = 'free')+ggtitle("Histograms of Stats")
+```
+
+Passing_INT is skewed to the right with a mean at 0 passing interceptions. There is at least one outlier at 3 passing interceptions in one game.
+Passing_TD has a mean of 0 per game and as the number of passing touchdowns tends to decrease as the number increases.
+There are more instances of players with 0 passing yards per game than any other category, but we can see that there are likely a few dominant players that average between 200 and 300 yards per game.
+Receiving_REC tends to decrease as the number of receptions increases. There seem to be a couple outliers at around 10 receptions a game.
+Offensive players had either 0 or 1 receiving touchdown per game, with 0 touchdowns per game being more common.
+Receiving_YDS decreases as the number of years increases, with potential outliers at around 110 yards and 120 yards. The median value was 0 yards.
+Rushing_ATT tends to decrease as the amount increases, but the most common values for Rushing_ATT were 0 and around 7-8.There seem to be a couple outliers at around 30.
+Rushing_TD decreases at the number of touchdowns increases.The most common value was 0.
+Rushing_YDS decreases asthe number of yards increases and there seems to be potential outliers closer to 200 yards.
+All distributions are skewed to the right and have outliers at the extreme right tail values.
+
+### 3
+```{r}
+offCleanWide<- offCleanest %>%
+  filter(stat == "Receiving_YDS" & ( Opponent == "Oklahoma" | Opponent == "Oregon")) %>%
+  pivot_wider(names_from='Opponent',values_from="value", values_fn=mean) 
+ 
+head(offCleanWide)
+
+ggplot(offCleanWide, aes(x=Oklahoma, y= Oregon))+geom_point()+xlim(0,100)+ylim(0,100)+ggtitle("Receiving Yards by Player against Oklahoma vs Oregon")
+
+```
+We can see that the defense was better against Oklahoma because every player had higher Receiving Yards against Oklahoma than against Oregon. 
+
+
+
+# ME
+
+### 4
+```{r}
 bioClean <- separate(bioClean, Hometown, c('City', 'State'), sep=', ')
-bioClean
+head(bioClean[7:8], 5)
+```
+### 5
+
+
+```{r}
 t <- table(bioClean$State)
 t <- data.frame(rbind(t))
 t
+```
+
+
+
+## Part Three
+
+### 1
+#### Numerical
+```{r}
 homeCount <- t %>%
   pivot_longer(Ariz.:Wis., names_to='State', values_to='Count') %>%
   arrange(desc(Count))
 homeCount
+```
 
-
+#### Graphical
+```{r}
 ggplot(bioClean, aes(x=`State`)) + 
   geom_bar() + 
   theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjus=.5))
 ```
 
-```{r}
-
-```
-
+### 3
 
 ```{r}
-defense19 <- read_excel('../ds202_lab4/cyclonesFootball2019.xlsx', sheet='Defensive')
 offense19 <- read_excel('../ds202_lab4/cyclonesFootball2019.xlsx', sheet='Offensive')
 
+offense19 <- rename(offense19, 'Opponent'='Opponent_Opponent')
+offense19$Opponent <- as.factor(offense19$Opponent)
+offense19$Name <- as.factor(offense19$Name)
+
+offense19 <- offense19 %>%
+  mutate(across(Rushing_ATT:Passing_INT, as.numeric))
+
+offClean19 <- offense19
 ```
 
+
+```{r}
+offCleanLonger19 <- offClean19 %>%
+  pivot_longer(Rushing_ATT:Passing_INT, names_to = 'stat',values_to = 'value' )
+
+offCleanest19 <- drop_na(offCleanLonger19)
+
+offAvg <- offCleanest %>%
+  group_by(Name, stat)%>%
+  summarise_at(vars(value), list(average20 = mean))
+
+offAvg19 <- offCleanest19 %>%
+  group_by(Name, stat)%>%
+  summarise_at(vars(value), list(average19 = mean))  
+
+off1920 <- offAvg %>%
+  left_join(offAvg19, by=c('Name', 'stat')) %>%
+  drop_na() %>%
+  mutate(difference = average20 - average19) %>%
+  mutate(improved = difference>0)
+
+head(off1920, 5)
+```
+```{r}
+ggplot(off1920, aes(x=Name, y=difference))+
+  geom_bar(stat = "identity")+
+  facet_wrap(~stat, scales = 'free')+
+  ggtitle("Difference in stat averages from 2019 to 2020") + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjus=0.5, size = rel(0.7)))
+```
+  
+For this question I looked at the averages for each statistic on the offensive side of the ball for each player that played in both 2019 and 2020. I then combined the 2 years and calculated the difference between the 2 years to see how each play improved from 2019 to 2020. In the receiving stats row you see Landen Akers and Dylan Soehner both improved in receptions per game and yards per game but only Landen Akers improved in touchdowns per game of the 2. Given Landen Akers improved in each area almost more than anyone else I would say he was the most improved receiver. Although the most improved receiver was pretty close, the most improved rusher is pretty clear. You can see that Breece Hall improved more than any other back in all 3 categories. I would easily give him most improved runner. We also have throwing stats in this graph but since Brock Purdy is the only QB who played both 2019 and 2020 there isn't much analyses that can be done.

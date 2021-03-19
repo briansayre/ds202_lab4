@@ -53,16 +53,19 @@ offense <- offense %>%
   mutate(across(Receiving_REC:Passing_INT, as.numeric))
 head(offense)
 
+defClean <- defense
+offClean <- offense
+```
 
+## 3
+```{r}
 biography <- separate(biography, Height, c('Feet', 'Inches'), sep='-')
 biography <- biography %>%
   mutate(across(Feet:Weight, as.numeric))
 head(biography)
-
-defClean <- defense
-offClean <- offense
 bioClean <- biography
 ```
+
 
 ## Part Two
 ### 1
@@ -79,7 +82,7 @@ offCleanest <- drop_na(offCleanLonger)
 
 ```{r}
 offCleanest$stat <- as.factor(offCleanest$stat)
-ggplot(offCleanest, aes(x=value))+geom_histogram(bins = 15)+facet_wrap(~ stat, scales = 'free')+ggtitle("Histograms of Stats")
+ggplot(offCleanest, aes(x=value))+geom_histogram(bins = 15)+facet_wrap(~ stat, scales = 'free')+ggtitle("Histograms of Team Stats")
 ```
 
 Passing_INT is skewed to the right with a mean at 0 passing interceptions. There is at least one outlier at 3 passing interceptions in one game.
@@ -101,7 +104,7 @@ offCleanWide<- offCleanest %>%
  
 head(offCleanWide)
 
-ggplot(offCleanWide, aes(x=Oklahoma, y= Oregon))+geom_point()+xlim(0,100)+ylim(0,100)+ggtitle("Receiving Yards by Player against Oklahoma vs Oregon")
+ggplot(offCleanWide, aes(x=Oklahoma, y= Oregon))+geom_point()+xlim(0,100)+ylim(0,100)+ggtitle("Receiving Yards by Player against Oklahoma vs. Oregon")
 
 ```
 We can see that the defense was better against Oklahoma because every player had higher Receiving Yards against Oklahoma than against Oregon. 
@@ -137,11 +140,25 @@ homeCount
 ```{r}
 ggplot(bioClean, aes(x=`State`)) + 
   geom_bar() + 
-  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjus=.5))
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjus=.5))+ggtitle("Number of Players per State")
 ```
 
 ### 2
 
+```{r}
+Brock <- offCleanest %>% filter(Name == "Purdy, Brock")
+str(Brock)
+
+ggplot(Brock, aes(x=value))+geom_histogram(bins = 15)+facet_wrap(~ stat, scales = 'free')+ggtitle("Histograms of Brock Purdy Stats")
+```
+
+As these histograms show, Brock Purdy is responsible for statistics in passing interceptions, passing touchdowns, passing yards (including many of the outliers seen in the overall data frame), rushing attempts, rushing touchdowns, and rushing yards.
+
+```{r}
+ggplot(offCleanest, aes(x=value, fill=Name=="Purdy, Brock"))+geom_histogram(bins = 15)+facet_wrap(~ stat, scales = 'free')+ggtitle("Histograms of Team Stats with Brock Purdy Highlighted")
+```
+
+As shown in the graphs above, Brock Purdy's statistics account for most of the passing yards, passing interceptions, and passing touchdowns, and a decent amount of rushing attempts, rushing touchdowns, and rushing yards. Therefore, Brock Purdy has a large impact on how the overall offense performs as he is the one that contributes to a lot of the major statistics. 
 
 ### 3
 

@@ -49,15 +49,19 @@ biography$Name <- as.factor(biography$Name)
 
 ## Question 2
 ```{r}
-defense[,3:11] <- sapply(defense[,3:11],as.numeric)
+
+defense <- defense %>%
+  mutate(across(Tackles_Solo:Pass_PB, as.numeric))
 str(defense)
 
-offense[,3:11] <- sapply(offense[,3:11],as.numeric)
+offense <- offense %>%
+  mutate(across(Receiving_REC:Passing_INT, as.numeric))
 str(offense)
 
 
-biography <- separate(biography, Height, c('feet', 'inches'), sep='-')
-biography[,3:5] <- sapply(biography[,3:5],as.numeric)
+biography <- separate(biography, Height, c('Feet', 'Inches'), sep='-')
+biography <- biography %>%
+  mutate(across(Feet:Weight, as.numeric))
 head(biography)
 
 defClean <- defense
@@ -65,3 +69,25 @@ offClean <- offense
 bioClean <- biography
 ```
 
+## Part Three
+## Question 2
+```{r}
+offCleanLonger <- offClean %>%
+  pivot_longer(Receiving_REC:Passing_INT,names_to = 'stat',values_to = 'value' )
+
+offCleanest <- drop_na(offCleanLonger)
+
+head(offCleanest)
+Brock <- offCleanest %>% filter(Name == "Purdy, Brock")
+str(Brock)
+
+ggplot(Brock, aes(x=value))+geom_histogram(bins = 15)+facet_wrap(~ stat, scales = 'free')+ggtitle("Histograms of Stats")
+```
+
+As these histograms show, Brock Purdy is responsible for statistics in passing interceptions, passing touchdowns, passing yards (including many of the outliers seen in the overall data frame), rushing attempts, rushing touchdowns, and rushing yards.
+
+```{r}
+ggplot(offCleanest, aes(x=value, fill=Name=="Purdy, Brock"))+geom_histogram(bins = 15)+facet_wrap(~ stat, scales = 'free')+ggtitle("Histograms of Stats")
+```
+
+As shown in the graphs above, Brock Purdy's statistics account for most of the passing yards, passing interceptions, and passing touchdowns, and a decent amount of rushing attempts, rushing touchdowns, and rushing yards. Therefore, Brock Purdy has a large impact on how the overall offense performs as he is the one that contributes to a lot of the major statistics. 
